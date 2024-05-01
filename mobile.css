@@ -1,0 +1,31 @@
+@media screen and (max-width: 479px)
+{
+    body {
+        font-size: 1.2rem;
+    }
+
+    .container {
+        width: calc(100% - 16px);
+        padding: 16px;
+    }
+
+    .form-group input,
+    .form-group select{
+        width: 120px;
+    }
+
+    .option {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Result */
+    .result-item.result-header{
+        font-size: 1.2rem;
+    }
+    
+    .result-item{
+        width: 200%;
+    }
+}

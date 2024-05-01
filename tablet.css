@@ -1,0 +1,58 @@
+/* @media screen and (max-width: 1023px) */
+@media screen and (max-width: 767px)
+{
+    body {
+        font-size: 1.4rem;
+    }
+
+    .container {
+        padding: 16px;
+    }
+
+    .option {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .option-select > div {
+        margin: 0 4px;
+    }
+
+    .option > div {
+        margin: 4px 0;
+    }
+
+    .form-group input,
+    .form-group select{
+        width: 160px;
+    }
+
+    .file-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .file-name {
+        margin: 4px;
+    }
+
+    .submit-btn {
+        padding: 8px;
+        font-size: 12px;
+        width: 120px;
+        margin-top: 0;
+    }
+
+    /* Result */
+    .result-item.result-header{
+        font-size: 1.3rem;
+        padding: 8px 4px;
+    }
+    
+    .result-item{
+        width: 180%;
+    }
+}
