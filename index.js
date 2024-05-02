@@ -5,12 +5,13 @@ const NAME = ["name", "tên"];
 const RANK_MODE = "rank";
 const POINT_MODE = "point";
 
-const fileInput = document.getElementById("file-input");
-const fileName = document.querySelector(".file-name");
 const submitBtn = document.querySelector(".submit-btn");
+const submitBtnContent = document.querySelector(".submit-btn-content");
 const resultContainer = document.querySelector(".result-container");
 const playerNumberInput = document.querySelector(".player-number-input");
 const modeOption = document.querySelector(".mode-option");
+const optionTypeBar = document.querySelector(".option-type-bar");
+const optionContent = document.querySelector(".option-content");
 
 const getSheetRows = (sheet) => {
     let rows = [];
@@ -213,20 +214,8 @@ const calculateTeamResult = (sheet, numberOfPlayers, mode) => {
     return res;
 };
 
-const calculateResultFromFile = (file, numberOfPlayers, mode) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, {
-            type: "array",
-        });
-
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-
-        // Iterate through rows
-        const res = calculateTeamResult(sheet, numberOfPlayers, mode);
-        resultContainer.innerHTML = `
+const renderResult = (res) => {
+    resultContainer.innerHTML = `
         <h3>BẢNG XẾP HẠNG ĐỒNG ĐỘI</h3>
             <div class="result-table scroll">
                 <div class="result-item result-header">
@@ -280,6 +269,36 @@ const calculateResultFromFile = (file, numberOfPlayers, mode) => {
                     )
                     .join("")}
             </div>`;
+};
+
+const formatChessResultLink = (value) => {
+    const roundIdx = value.indexOf("rd=");
+    let url = value;
+    const firstParamIdx = value.indexOf("?") + 1;
+    url = url.slice(0, firstParamIdx);
+    url += "lan=1&art=1&zeilen=0&prt=4&excel=2010&";
+    if (!roundIdx) {
+        url += "rd=9";
+    } else {
+        value.slice(roundIdx);
+    }
+    return url;
+};
+
+const calculateResultFromFile = async (file, numberOfPlayers, mode) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, {
+            type: "array",
+        });
+
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        // Iterate through rows
+        const res = calculateTeamResult(sheet, numberOfPlayers, mode);
+        renderResult(res);
     };
     reader.onerror = function (ex) {
         alert("Có lỗi xảy ra. Vui lòng thử lại");
@@ -289,12 +308,68 @@ const calculateResultFromFile = (file, numberOfPlayers, mode) => {
     reader.readAsArrayBuffer(file);
 };
 
+const calculateResultFromLink = async (value, numberOfPlayers, mode) => {
+    const proxyUrl = `https://api.allorigins.win/get?url=`;
+    const url = formatChessResultLink(value);
+    const res = await fetch(proxyUrl + encodeURIComponent(url));
+    const data = await res.json();
+    const base64Content = data.contents.replace(
+        "data:application/vnd.ms-excel;base64,",
+        ""
+    );
+    const workbook = XLSX.read(
+        base64Content.replace(/_/g, "/").replace(/-/g, "+"),
+        { type: "base64" }
+    );
+
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    // Iterate through rows
+    const teamRes = calculateTeamResult(sheet, numberOfPlayers, mode);
+    renderResult(teamRes);
+};
+
 // Events
 const uploadFile = () => {
+    const fileInput = document.getElementById("file-input");
     fileInput.click();
 };
 
+const submit = async () => {
+    const optionTypeBarActiveItem = optionTypeBar.querySelector(
+        ".option-type-bar-item.active"
+    );
+    const currentType = optionTypeBarActiveItem.classList.contains("file-type")
+        ? "file"
+        : "link";
+    const loader = document.createElement("div");
+    loader.classList.add("loader");
+    submitBtnContent.appendChild(loader);
+    submitBtn.disabled = true;
+    if (currentType === "file") {
+        const fileInput = document.getElementById("file-input");
+        const file = fileInput.files[0];
+        const numberOfPlayers = playerNumberInput.value;
+        const mode = modeOption.value;
+        if (file) {
+            await calculateResultFromFile(file, numberOfPlayers, mode);
+        }
+    } else {
+        const linkInput = document.querySelector(".link-input input");
+        const value = linkInput.value;
+        const numberOfPlayers = playerNumberInput.value;
+        const mode = modeOption.value;
+        if (value) {
+            await calculateResultFromLink(value, numberOfPlayers, mode);
+        }
+    }
+    submitBtnContent.removeChild(loader);
+    submitBtn.disabled = false;
+};
+
 const handleFile = () => {
+    const fileInput = document.getElementById("file-input");
     const file = fileInput.files[0];
     const numberOfPlayers = playerNumberInput.value;
     const mode = modeOption.value;
@@ -302,6 +377,8 @@ const handleFile = () => {
 };
 
 const onInputFileChange = (e) => {
+    const fileInput = document.getElementById("file-input");
+    const fileName = document.querySelector(".file-name");
     const file = fileInput.files[0];
     if (file) {
         const name = file.name;
@@ -317,6 +394,44 @@ const onPlayerNumberInputChange = (e) => {
     const value = e.target.value;
     if (!isValidNumberPlayer(value)) {
         playerNumberInput.value = value.slice(0, -1);
+    }
+};
+
+const onLinkInputChange = (e) => {
+    const value = e.target.value;
+    if (value) {
+        submitBtn.classList.add("active");
+        resultContainer.innerHTML = "";
+    } else {
+        submitBtn.classList.remove("active");
+    }
+};
+
+const onTypeBarItemChange = () => {
+    const optionTypeBarActiveItem = optionTypeBar.querySelector(
+        ".option-type-bar-item.active"
+    );
+    const optionTypeBarUnActiveItem = optionTypeBar.querySelector(
+        ".option-type-bar-item:not(.active)"
+    );
+    const switchType = optionTypeBarUnActiveItem.classList.contains("file-type")
+        ? "file"
+        : "link";
+    optionTypeBarActiveItem.classList.remove("active");
+    optionTypeBarUnActiveItem.classList.add("active");
+    if (switchType === "file") {
+        optionContent.innerHTML = `<input type="file" id="file-input" hidden accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="onInputFileChange()">
+      <div class="file-group">
+          <button class="file-btn" onclick="uploadFile()">
+              <span class="file-btn-text">File xếp hạng</span>
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+          </button>
+          <span class="file-name"></span>
+      </div>`;
+    } else {
+        optionContent.innerHTML = `<div class="form-group link-input">
+          <input style="width: 250px;" type="text" placeholder="Link Chess Results (ván 9)" oninput="onLinkInputChange(event)">
+      </div>`;
     }
 };
 

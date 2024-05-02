@@ -55,4 +55,9 @@
     .result-item{
         width: 180%;
     }
+
+    /* Option type bar */
+    .option-type {
+        align-items: center;
+    }
 }

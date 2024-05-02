@@ -31,18 +31,28 @@
                         </select>
                     </div>
                 </div>
-                <div>
-                    <input type="file" id="file-input" hidden accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="onInputFileChange()">
-                    <div class="file-group">
-                        <button class="file-btn" onclick="uploadFile()">
-                            <span class="file-btn-text">File xếp hạng</span>
-                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
-                        </button>
-                        <span class="file-name"></span>
+                <div class="option-type">
+                    <div class="option-type-bar">
+                        <span class="option-type-bar-item file-type active" onclick="onTypeBarItemChange()">File</span>
+                        <span class="option-type-bar-item link-type" onclick="onTypeBarItemChange()">Link Chess Results</span>
+                    </div>
+                    <div class="option-content">
+                        <input type="file" id="file-input" hidden accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onchange="onInputFileChange()">
+                        <div class="file-group">
+                            <button class="file-btn" onclick="uploadFile()">
+                                <span class="file-btn-text">File xếp hạng</span>
+                                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                            </button>
+                            <span class="file-name"></span>
+                        </div>
                     </div>
                 </div>
             </div>
-            <button class="submit-btn" onclick="handleFile()">Tính kết quả</button>
+            <button class="submit-btn" onclick="submit()"> 
+                <div class="submit-btn-content">
+                    <span>Tính kết quả</span>
+                </div>
+            </button>
         </div>
         <div class="result-container scroll"></div>
     </div>
